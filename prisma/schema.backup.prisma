@@ -1,0 +1,599 @@
+// RoyalTech Database Schema
+// PostgreSQL database with Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public"]
+}
+
+// ============================================================
+// ADMIN & AUTHENTICATION
+// ============================================================
+
+model Admin {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  status        AdminStatus @default(ACTIVE)
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  leads         Lead[]
+  prospects     Prospect[]
+  consultations Consultation[]
+  proposals     Proposal[]
+  projects      Project[]
+  assessments   Assessment[]
+  documents     Document[]
+  insights      Insight[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@map("admins")
+}
+
+enum AdminStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// ============================================================
+// CRM - LEADS & PROSPECTS
+// ============================================================
+
+model Lead {
+  id              String      @id @default(uuid())
+  name            String
+  company         String?
+  email           String
+  phone           String?
+  website         String?
+  industry        Industry?
+  companySize     CompanySize?
+  serviceInterest ServiceArea?
+  businessChallenge String?   @db.Text
+  leadSource      LeadSource  @default(WEBSITE)
+  status          LeadStatus  @default(NEW)
+  priority        Priority    @default(MEDIUM)
+  assignedAdminId String? @map("assigned_admin_id")
+  assignedAdmin   Admin?      @relation(fields: [assignedAdminId], references: [id])
+  lastContactAt   DateTime? @map("last_contact_at")
+  nextFollowUpAt  DateTime? @map("next_follow_up_at")
+  notes           String?     @db.Text
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  consultations   Consultation[]
+  proposals       Proposal[]
+
+  @@index([status])
+  @@index([assignedAdminId])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+model Prospect {
+  id              String          @id @default(uuid())
+  company         String
+  industry        Industry?
+  website         String?
+  contactPerson   String
+  jobTitle        String?
+  email           String
+  phone           String?
+  linkedIn        String?
+  researchNotes   String?         @db.Text
+  problemHypothesis String?       @db.Text
+  priority        Priority        @default(MEDIUM)
+  contactStatus   ProspectStatus  @default(NOT_CONTACTED)
+  assignedAdminId String?
+  assignedAdmin   Admin?          @relation(fields: [assignedAdminId], references: [id])
+  lastContactAt   DateTime? @map("last_contact_at")
+  nextFollowUpAt  DateTime? @map("next_follow_up_at")
+  notes           String?         @db.Text
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@index([contactStatus])
+  @@index([assignedAdminId])
+  @@map("prospects")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONSULTATION
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+  NURTURE
+}
+
+enum LeadSource {
+  WEBSITE
+  EMAIL
+  PHONE
+  LINKEDIN
+  REFERRAL
+  EVENT
+  DIRECT_OUTREACH
+  OTHER
+}
+
+enum ProspectStatus {
+  NOT_CONTACTED
+  EMAIL_SENT
+  CALL_MADE
+  REPLIED
+  MEETING
+  QUALIFIED
+  FOLLOW_UP
+  NOT_INTERESTED
+  CONVERTED
+}
+
+enum Industry {
+  REAL_ESTATE
+  CONSTRUCTION
+  LOGISTICS
+  HOSPITALITY
+  PROFESSIONAL_SERVICES
+  GROWING_ENTERPRISES
+  OTHER
+}
+
+enum CompanySize {
+  SMALL
+  MEDIUM
+  LARGE
+  ENTERPRISE
+}
+
+enum ServiceArea {
+  TECHNOLOGY_STRATEGY
+  AI_CONSULTING
+  AUTOMATION
+  DIGITAL_TRANSFORMATION
+  SOFTWARE_SYSTEMS
+  TECHNOLOGY_ADVISORY
+  NOT_SURE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// ============================================================
+// SALES - CONSULTATIONS & PROPOSALS
+// ============================================================
+
+model Consultation {
+  id                String              @id @default(uuid())
+  leadId            String?
+  lead              Lead?               @relation(fields: [leadId], references: [id])
+  name              String
+  company           String?
+  email             String
+  phone             String?
+  industry          Industry?
+  companySize       CompanySize?
+  areaOfInterest    ServiceArea?
+  businessChallenge String?             @db.Text
+  preferredDate     DateTime?
+  preferredTime     String?
+  additionalInfo    String?             @db.Text
+  status            ConsultationStatus  @default(NEW)
+  assignedAdminId   String? @map("assigned_admin_id")
+  assignedAdmin     Admin?              @relation(fields: [assignedAdminId], references: [id])
+  scheduledAt       DateTime? @map("scheduled_at")
+  completedAt       DateTime? @map("completed_at")
+  notes             String?             @db.Text
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([assignedAdminId])
+  @@index([scheduledAt])
+  @@map("consultations")
+}
+
+model Proposal {
+  id                String          @id @default(uuid())
+  leadId            String?
+  lead              Lead?           @relation(fields: [leadId], references: [id])
+  clientCompany     String
+  title             String
+  problem           String          @db.Text
+  objectives        String          @db.Text
+  scope             String          @db.Text
+  deliverables      String          @db.Text
+  timeline          String          @db.Text
+  investment        String          @db.Text
+  terms             String?         @db.Text
+  expirationDate    DateTime? @map("expiration_date")
+  status            ProposalStatus  @default(DRAFT)
+  assignedAdminId   String? @map("assigned_admin_id")
+  assignedAdmin     Admin?          @relation(fields: [assignedAdminId], references: [id])
+  sentAt            DateTime? @map("sent_at")
+  viewedAt          DateTime? @map("viewed_at")
+  acceptedAt        DateTime? @map("accepted_at")
+  rejectedAt        DateTime? @map("rejected_at")
+  notes             String?         @db.Text
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  project           Project?
+
+  @@index([status])
+  @@index([assignedAdminId])
+  @@map("proposals")
+}
+
+enum ConsultationStatus {
+  NEW
+  REVIEWING
+  CONTACTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  CONVERTED
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  VIEWED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+// ============================================================
+// DELIVERY - PROJECTS, ASSESSMENTS, DOCUMENTS
+// ============================================================
+
+model Project {
+  id                  String          @id @default(uuid())
+  proposalId          String?         @unique
+  proposal            Proposal?       @relation(fields: [proposalId], references: [id])
+  name                String
+  company             String
+  description         String          @db.Text
+  service             ServiceArea
+  startDate           DateTime? @map("start_date")
+  expectedCompletion  DateTime? @map("expected_completion")
+  status              ProjectStatus   @default(PLANNING)
+  currentStage        ProjectStage? @map("current_stage")
+  progress            Int             @default(0)
+  assignedAdminId     String? @map("assigned_admin_id")
+  assignedAdmin       Admin?          @relation(fields: [assignedAdminId], references: [id])
+  internalNotes       String?         @db.Text @map("internal_notes")
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  milestones          ProjectMilestone[]
+  documents           Document[]
+  assessments         Assessment[]
+
+  @@index([status])
+  @@index([assignedAdminId])
+  @@map("projects")
+}
+
+model ProjectMilestone {
+  id          String    @id @default(uuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?   @db.Text
+  dueDate     DateTime? @map("due_date")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([projectId])
+  @@map("project_milestones")
+}
+
+model Assessment {
+  id              String            @id @default(uuid())
+  projectId       String?
+  project         Project?          @relation(fields: [projectId], references: [id])
+  clientCompany   String
+  type            AssessmentType
+  objective       String            @db.Text
+  currentState    String            @db.Text
+  findings        String            @db.Text
+  risks           String?           @db.Text
+  opportunities   String?           @db.Text
+  recommendations String            @db.Text
+  priority        Priority          @default(MEDIUM)
+  nextSteps       String?           @db.Text @map("next_steps")
+  status          AssessmentStatus  @default(DRAFT)
+  assignedAdminId String? @map("assigned_admin_id")
+  assignedAdmin   Admin?            @relation(fields: [assignedAdminId], references: [id])
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([projectId])
+  @@map("assessments")
+}
+
+model Document {
+  id              String        @id @default(uuid())
+  projectId       String?
+  project         Project?      @relation(fields: [projectId], references: [id])
+  name            String
+  type            DocumentType
+  company         String?
+  filePath        String
+  fileSize        Int @map("file_size")
+  mimeType        String @map("mime_type")
+  version         String        @default("1.0")
+  uploadedById    String @map("uploaded_by_id")
+  uploadedBy      Admin         @relation(fields: [uploadedById], references: [id])
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@index([projectId])
+  @@index([type])
+  @@map("documents")
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum ProjectStage {
+  DISCOVERY
+  ASSESSMENT
+  STRATEGY
+  DESIGN
+  IMPLEMENTATION
+  TESTING
+  DEPLOYMENT
+  OPTIMIZATION
+}
+
+enum AssessmentStatus {
+  DRAFT
+  IN_REVIEW
+  COMPLETED
+  ARCHIVED
+}
+
+enum AssessmentType {
+  TECHNOLOGY_ASSESSMENT
+  AI_READINESS_ASSESSMENT
+  AUTOMATION_ASSESSMENT
+  DIGITAL_TRANSFORMATION_ASSESSMENT
+}
+
+enum DocumentType {
+  PROPOSAL
+  CONTRACT
+  ASSESSMENT
+  REPORT
+  PROJECT_FILE
+  INVOICE
+  CASE_STUDY
+  INTERNAL
+  OTHER
+}
+
+// ============================================================
+// CONTENT MANAGEMENT - SERVICES, INDUSTRIES, INSIGHTS
+// ============================================================
+
+model Service {
+  id              String    @id @default(uuid())
+  name            String
+  slug            String    @unique
+  description     String    @db.Text
+  problem         String?   @db.Text
+  solution        String?   @db.Text
+  deliverables    String?   @db.Text
+  businessOutcomes String?  @db.Text @map("business_outcomes")
+  faq             String?   @db.Text
+  seoTitle        String?   @map("seo_title")
+  seoDescription  String?   @map("seo_description")
+  displayOrder    Int       @default(0) @map("display_order")
+  published       Boolean   @default(false)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@index([published])
+  @@map("services")
+}
+
+model IndustryPage {
+  id              String    @id @default(uuid())
+  name            String
+  slug            String    @unique
+  industry        Industry
+  description     String    @db.Text
+  challenges      String?   @db.Text
+  solutions       String?   @db.Text
+  relevantServices String?  @db.Text @map("relevant_services")
+  faq             String?   @db.Text
+  seoTitle        String?   @map("seo_title")
+  seoDescription  String?   @map("seo_description")
+  displayOrder    Int       @default(0) @map("display_order")
+  published       Boolean   @default(false)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@index([published])
+  @@map("industry_pages")
+}
+
+model Insight {
+  id              String          @id @default(uuid())
+  title           String
+  slug            String          @unique
+  excerpt         String?         @db.Text
+  content         String          @db.Text
+  category        InsightCategory
+  featuredImage   String?
+  authorId        String
+  author          Admin           @relation(fields: [authorId], references: [id])
+  tags            String[]
+  seoTitle        String? @map("seo_title")
+  seoDescription  String? @map("seo_description")
+  publishedAt     DateTime? @map("published_at")
+  status          InsightStatus   @default(DRAFT)
+  viewCount       Int             @default(0) @map("view_count")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@index([status])
+  @@index([category])
+  @@index([publishedAt])
+  @@map("insights")
+}
+
+enum InsightStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum InsightCategory {
+  TECHNOLOGY_STRATEGY
+  ARTIFICIAL_INTELLIGENCE
+  AUTOMATION
+  DIGITAL_TRANSFORMATION
+  BUSINESS_TECHNOLOGY
+  DATA
+  CYBERSECURITY
+  CONSULTING
+}
+
+// ============================================================
+// COMMUNICATION - MESSAGES & NOTIFICATIONS
+// ============================================================
+
+model ContactMessage {
+  id          String    @id @default(uuid())
+  name        String
+  company     String?
+  email       String
+  phone       String?
+  subject     String
+  message     String    @db.Text
+  isRead      Boolean   @default(false) @map("is_read")
+  respondedAt DateTime? @map("responded_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
+model Notification {
+  id          String            @id @default(uuid())
+  adminId     String
+  admin       Admin             @relation(fields: [adminId], references: [id])
+  type        NotificationType
+  title       String
+  message     String            @db.Text
+  link        String?
+  isRead      Boolean           @default(false) @map("is_read")
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  @@index([adminId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  NEW_LEAD
+  NEW_CONTACT
+  NEW_CONSULTATION
+  CONSULTATION_UPDATE
+  PROPOSAL_ACTION
+  PROJECT_DEADLINE
+  NEW_MESSAGE
+  SYSTEM_ALERT
+}
+
+// ============================================================
+// SYSTEM - SETTINGS & AUDIT LOGS
+// ============================================================
+
+model SystemSetting {
+  id          String    @id @default(uuid())
+  key         String    @unique
+  value       String    @db.Text
+  description String?
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  adminId     String?
+  admin       Admin?      @relation(fields: [adminId], references: [id])
+  action      AuditAction
+  resource    String
+  resourceId  String? @map("resource_id")
+  details     String?     @db.Text
+  ipAddress   String? @map("ip_address")
+  userAgent   String? @map("user_agent")
+  result      String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+enum AuditAction {
+  ADMIN_LOGIN
+  FAILED_LOGIN
+  LEAD_CREATED
+  LEAD_UPDATED
+  PROSPECT_CREATED
+  PROSPECT_UPDATED
+  CONSULTATION_CREATED
+  CONSULTATION_UPDATED
+  PROPOSAL_CREATED
+  PROPOSAL_SENT
+  PROPOSAL_ACCEPTED
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  DOCUMENT_UPLOADED
+  DOCUMENT_DELETED
+  INSIGHT_PUBLISHED
+  SERVICE_UPDATED
+  SETTINGS_CHANGED
+}

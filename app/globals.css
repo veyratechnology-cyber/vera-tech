@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Fonts */
+    --font-sora: 'Sora', sans-serif;
+    --font-inter: 'Inter', sans-serif;
+    
+    /* VeyraTech Brand Colors - Navy + Orange System */
+    --primary-color: #0D2340;
+    --primary-dark: #081A30;
+    --secondary-color: #FC8436;
+    --secondary-hover: #E5702A;
+    --text-primary: #FFFFFF;
+    --text-secondary: #E5E5E5;
+    --text-muted: #CCCCCC;
+    --success-color: #34C77B;
+    --border-color: rgba(255, 255, 255, 0.10);
+    
+    /* Derived colors for effects */
+    --secondary-glow: rgba(252, 132, 54, 0.20);
+    --secondary-bg: rgba(252, 132, 54, 0.10);
+  }
+  
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-primary text-text-secondary font-inter antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sora font-bold text-text-primary;
+  }
+}
+
+@layer components {
+  /* Button Styles */
+  .btn {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2;
+  }
+  
+  .btn-primary {
+    @apply bg-secondary text-text-primary hover:bg-secondary-hover shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-transparent text-text-primary border border-white/35 hover:border-secondary hover:text-secondary;
+  }
+  
+  .btn-outline {
+    @apply border border-border text-text-primary hover:bg-secondary hover:text-text-primary hover:border-secondary;
+  }
+  
+  /* Card Styles */
+  .card {
+    @apply bg-primary-dark rounded-xl p-6 border border-border;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:border-secondary hover:-translate-y-1;
+  }
+  
+  /* Input Styles */
+  .input {
+    @apply w-full px-4 py-3 rounded-lg bg-primary-dark border border-border text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-secondary focus:border-secondary transition-all;
+  }
+  
+  .textarea {
+    @apply w-full px-4 py-3 rounded-lg bg-primary-dark border border-border text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-secondary focus:border-secondary transition-all resize-none;
+  }
+  
+  .select {
+    @apply w-full px-4 py-3 rounded-lg bg-primary-dark border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary focus:border-secondary transition-all;
+  }
+  
+  /* Container */
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* Section Spacing */
+  .section {
+    @apply py-16 md:py-24;
+  }
+  
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-secondary to-secondary-hover bg-clip-text text-transparent;
+  }
+  
+  /* Admin Sidebar */
+  .admin-sidebar {
+    @apply fixed left-0 top-0 h-screen w-64 bg-primary-dark text-text-primary border-r border-border overflow-y-auto;
+  }
+  
+  .admin-sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 text-text-secondary hover:bg-primary hover:text-text-primary transition-colors cursor-pointer rounded-lg;
+  }
+  
+  .admin-sidebar-link-active {
+    @apply bg-secondary text-text-primary;
+  }
+  
+  /* Orange Glow Effect */
+  .glow-secondary {
+    box-shadow: 0 0 20px var(--secondary-glow);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
