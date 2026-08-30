@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from "react";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";

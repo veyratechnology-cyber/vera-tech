@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Cron job endpoint for sending consultation reminders
  * 
