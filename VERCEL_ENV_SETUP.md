@@ -11,12 +11,12 @@ Go to: **Vercel Dashboard → Your Project → Settings → Environment Variable
 DATABASE_URL=postgresql://postgres:%40Bonaventure123kenya@db.rughcgcyuoskszqzricx.supabase.co:5432/postgres
 
 # NextAuth (REQUIRED)
-NEXTAUTH_URL=https://veyratech.vercel.app
+NEXTAUTH_URL=https://vera-tech.vercel.app
 NEXTAUTH_SECRET=i+Tl82ljr6Ne+Ibqx73bBLVdkXs+g8MaeFzj/kY1U8g=
 
 # App URLs (REQUIRED)
-NEXT_PUBLIC_APP_URL=https://veyratech.vercel.app
-NEXT_PUBLIC_ADMIN_URL=https://veyratech.vercel.app/admin
+NEXT_PUBLIC_APP_URL=https://vera-tech.vercel.app
+NEXT_PUBLIC_ADMIN_URL=https://vera-tech.vercel.app/admin
 
 # Node Environment
 NODE_ENV=production
@@ -28,7 +28,7 @@ TZ=Africa/Nairobi
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_REFRESH_TOKEN=
-GOOGLE_REDIRECT_URI=https://veyratech.vercel.app/api/auth/google/callback
+GOOGLE_REDIRECT_URI=https://vera-tech.vercel.app/api/auth/google/callback
 GOOGLE_CALENDAR_ID=primary
 
 # Cron Secret (GENERATE A RANDOM STRING)
