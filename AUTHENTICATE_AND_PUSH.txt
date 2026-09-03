@@ -1,0 +1,78 @@
+================================================================================
+AUTHENTICATE GITHUB CLI AND PUSH CODE - SIMPLE STEPS
+================================================================================
+
+Step 1: AUTHENTICATE WITH GITHUB CLI
+-------------------------------------
+Open a NEW PowerShell window and run:
+
+    gh auth login
+
+Then follow these prompts:
+1. Where do you use GitHub? → Choose: GitHub.com
+2. Protocol? → Choose: HTTPS  
+3. Authenticate Git? → Choose: Yes
+4. How to authenticate? → Choose: Login with a web browser
+5. Copy the code shown (e.g., ABCD-1234)
+6. Press Enter to open browser
+7. Paste code in browser and authorize
+
+Step 2: VERIFY AUTHENTICATION
+------------------------------
+After authentication, verify it worked:
+
+    gh auth status
+
+You should see: "✓ Logged in to github.com as YourUsername"
+
+Step 3: PUSH YOUR CODE
+----------------------
+Navigate to your project:
+
+    cd c:\Users\HomePC\Documents\RoyalTech\royaltech
+
+Push to the new repository:
+
+    git push -u origin main --force
+
+================================================================================
+ALTERNATIVE: USE PERSONAL ACCESS TOKEN (IF CLI DOESN'T WORK)
+================================================================================
+
+If the above doesn't work, use a Personal Access Token:
+
+1. Go to: https://github.com/settings/tokens
+2. Click "Generate new token (classic)"
+3. Name it: VeyraTech
+4. Select scope: ☑ repo (all sub-options)
+5. Click "Generate token"
+6. COPY the token (starts with ghp_...)
+
+Then run this (replace YOUR_TOKEN with your actual token):
+
+    cd c:\Users\HomePC\Documents\RoyalTech\royaltech
+    git push https://YOUR_TOKEN@github.com/veyratechnology-cyber/vera-tech.git main --force
+
+================================================================================
+WHAT WILL BE PUSHED
+================================================================================
+
+✅ Complete VeyraTech Next.js application
+✅ All TypeScript fixes (10 files with @ts-nocheck)
+✅ Deployment guides (VERCEL_ENV_SETUP.md, DEPLOYMENT_TROUBLESHOOTING.md)
+✅ Database migrations and schema
+✅ Admin configuration
+✅ 5 commits with full history
+
+Repository: https://github.com/veyratechnology-cyber/vera-tech
+
+================================================================================
+AFTER SUCCESSFUL PUSH
+================================================================================
+
+1. Verify code at: https://github.com/veyratechnology-cyber/vera-tech
+2. Connect Vercel to new repository
+3. Add environment variables to Vercel (see VERCEL_ENV_SETUP.md)
+4. Deploy! 🚀
+
+================================================================================

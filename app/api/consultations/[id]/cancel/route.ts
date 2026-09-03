@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cancelConsultationEvent } from "@/lib/google-calendar";
-import { sendEmail } from "@/lib/email";
 
 export async function POST(
   request: NextRequest,
@@ -59,40 +58,8 @@ export async function POST(
     });
 
     // Send cancellation email to client
-    try {
-      await sendEmail({
-        to: consultation.email,
-        subject: "Consultation Cancelled - VeyraTech",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #1a1a1a;">Consultation Cancelled</h2>
-            
-            <p>Dear ${consultation.name},</p>
-            
-            <p>Your consultation scheduled for ${consultation.actualScheduledAt ? new Date(consultation.actualScheduledAt).toLocaleString() : 'TBD'} has been cancelled.</p>
-            
-            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #333;">Reason:</h3>
-              <p style="margin-bottom: 0;">${reason}</p>
-            </div>
-            
-            <p>If you would like to reschedule, please visit our booking page or contact us directly.</p>
-            
-            <p>We apologize for any inconvenience.</p>
-            
-            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
-            
-            <p style="color: #666; font-size: 14px;">
-              <strong>VeyraTech</strong><br>
-              Email: admin@veyratech.com<br>
-              Phone: +254 745 247 211
-            </p>
-          </div>
-        `,
-      });
-    } catch (emailError) {
-      console.error("[CANCEL] Failed to send cancellation email:", emailError);
-    }
+    // TODO: Implement cancellation email notification
+    console.log("[CANCEL] Cancellation email skipped - email system not configured");
 
     return NextResponse.json({
       success: true,
