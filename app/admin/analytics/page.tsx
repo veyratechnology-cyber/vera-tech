@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from "react";
 import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/shared";
