@@ -1,0 +1,138 @@
+========================================
+VERCEL ENVIRONMENT VARIABLES - EXACT VALUES
+Copy these EXACTLY as shown
+========================================
+
+VARIABLE 1
+----------
+Key (type manually, don't copy):
+DATABASE_URL
+
+Value (copy this):
+postgresql://postgres:%40Bonaventure123kenya@db.rughcgcyuoskszqzricx.supabase.co:5432/postgres
+
+Environments: Check all 3 boxes
+✓ Production
+✓ Preview
+✓ Development
+
+
+VARIABLE 2
+----------
+Key (type manually, don't copy):
+NEXTAUTH_URL
+
+Value (copy this):
+https://vera-tech.vercel.app
+
+Environments: Check all 3 boxes
+✓ Production
+✓ Preview
+✓ Development
+
+
+VARIABLE 3
+----------
+Key (type manually, don't copy):
+NEXTAUTH_SECRET
+
+Value (copy this):
+i+Tl82ljr6Ne+Ibqx73bBLVdkXs+g8MaeFzj/kY1U8g=
+
+Environments: Check all 3 boxes
+✓ Production
+✓ Preview
+✓ Development
+
+
+VARIABLE 4
+----------
+Key (type manually, don't copy):
+NEXT_PUBLIC_APP_URL
+
+Value (copy this):
+https://vera-tech.vercel.app
+
+Environments: Check all 3 boxes
+✓ Production
+✓ Preview
+✓ Development
+
+
+VARIABLE 5
+----------
+Key (type manually, don't copy):
+NEXT_PUBLIC_ADMIN_URL
+
+Value (copy this):
+https://vera-tech.vercel.app/admin
+
+Environments: Check all 3 boxes
+✓ Production
+✓ Preview
+✓ Development
+
+
+VARIABLE 6
+----------
+Key (type manually, don't copy):
+NODE_ENV
+
+Value (copy this):
+production
+
+Environments: Check all 3 boxes
+✓ Production
+✓ Preview
+✓ Development
+
+
+VARIABLE 7
+----------
+Key (type manually, don't copy):
+TZ
+
+Value (copy this):
+Africa/Nairobi
+
+Environments: Check all 3 boxes
+✓ Production
+✓ Preview
+✓ Development
+
+
+========================================
+IMPORTANT INSTRUCTIONS
+========================================
+
+1. DO NOT copy-paste the variable NAMES (Keys)
+   - Type them manually in Vercel
+   - This avoids invisible characters
+
+2. DO copy-paste the VALUES
+   - Select the value
+   - Copy it
+   - Paste in Vercel
+
+3. If a variable already exists:
+   - DON'T add it again
+   - Edit the existing one instead
+   - Or delete it first, then re-add
+
+4. Check all 3 environment boxes for each variable
+
+5. After adding ALL variables, go to Deployments → Redeploy
+
+========================================
+VARIABLE NAMES TO TYPE (copy one at a time)
+========================================
+
+DATABASE_URL
+NEXTAUTH_URL
+NEXTAUTH_SECRET
+NEXT_PUBLIC_APP_URL
+NEXT_PUBLIC_ADMIN_URL
+NODE_ENV
+TZ
+
+========================================
