@@ -1,8 +1,10 @@
 import { Resend } from "resend";
 import { format } from "date-fns";
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend client - only if API key is available
+const resend = process.env.RESEND_API_KEY 
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 const FROM_EMAIL = process.env.EMAIL_FROM || "VeyraTech <noreply@veyratech.com>";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@veyratech.com";
@@ -20,6 +22,11 @@ export async function sendConsultationConfirmation(data: {
   wasRescheduled?: boolean;
 }) {
   try {
+    if (!resend) {
+      console.log("[EMAIL] Resend not configured, skipping confirmation email");
+      return;
+    }
+
     const meetingTypeLabel =
       data.meetingType === "GOOGLE_MEET"
         ? "Google Meet"
@@ -181,6 +188,11 @@ export async function sendConsultationNotification(data: {
   wasRescheduled?: boolean;
 }) {
   try {
+    if (!resend) {
+      console.log("[EMAIL] Resend not configured, skipping admin notification");
+      return;
+    }
+
     let schedulingInfo = "";
     if (data.scheduledAt) {
       schedulingInfo = `
@@ -270,6 +282,11 @@ export async function sendMeetingReminder(data: {
   const label = timeLabels[data.timeUntil];
 
   try {
+    if (!resend) {
+      console.log("[EMAIL] Resend not configured, skipping meeting reminder");
+      return;
+    }
+
     await resend.emails.send({
       from: FROM_EMAIL,
       to: data.email,
@@ -352,6 +369,11 @@ export async function sendContactNotification(data: {
   message: string;
 }) {
   try {
+    if (!resend) {
+      console.log("[EMAIL] Resend not configured, skipping contact notification");
+      return;
+    }
+
     await resend.emails.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
@@ -400,6 +422,11 @@ export async function sendContactConfirmation(data: {
   email: string;
 }) {
   try {
+    if (!resend) {
+      console.log("[EMAIL] Resend not configured, skipping contact confirmation");
+      return;
+    }
+
     await resend.emails.send({
       from: FROM_EMAIL,
       to: data.email,
