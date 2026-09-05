@@ -28,17 +28,29 @@ export const authOptions: NextAuthOptions = {
         const email = credentials.email.trim().toLowerCase();
         console.log("[AUTH] normalized email:", email);
 
-        // Find admin user
+        // Find admin user with retry logic
         let admin;
-        try {
-          admin = await prisma.admin.findUnique({
-            where: { email: email },
-          });
-          console.log("[AUTH] database query completed");
-          console.log("[AUTH] user found:", Boolean(admin));
-        } catch (error) {
-          console.error("[AUTH] database error:", error instanceof Error ? error.message : String(error));
-          throw new Error("Database connection failed");
+        let retries = 3;
+        
+        while (retries > 0) {
+          try {
+            admin = await prisma.admin.findUnique({
+              where: { email: email },
+            });
+            console.log("[AUTH] database query completed");
+            console.log("[AUTH] user found:", Boolean(admin));
+            break; // Success, exit retry loop
+          } catch (error) {
+            retries--;
+            console.error(`[AUTH] database error (${3 - retries}/3):`, error instanceof Error ? error.message : String(error));
+            
+            if (retries === 0) {
+              throw new Error("Database connection failed after 3 attempts");
+            }
+            
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
         }
 
         if (!admin) {
