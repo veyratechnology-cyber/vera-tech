@@ -87,7 +87,7 @@ async function getSchedulingConfig() {
               return dayMap[d] || 1;
             });
           } catch (e) {
-            console.error("Failed to parse working days:", e);
+            // Silent fail - use default working days
           }
           break;
       }
@@ -95,7 +95,8 @@ async function getSchedulingConfig() {
 
     return config;
   } catch (error) {
-    console.error("Failed to load scheduling config:", error);
+    // Database unavailable - use default config (silent fail)
+    // This allows the app to work even without database connection
     return DEFAULT_CONFIG;
   }
 }
