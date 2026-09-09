@@ -16,8 +16,10 @@ import { prisma } from "@/lib/prisma";
 import { sendMeetingReminder } from "@/lib/email";
 import { addHours, addMinutes, isAfter, isBefore, subHours, subMinutes } from "date-fns";
 
-export const runtime = "edge";
+// Use Node.js runtime for Prisma compatibility
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // Max 60 seconds for cron job
 
 // Security: Verify cron job authorization
 function verifyCronAuth(request: NextRequest): boolean {

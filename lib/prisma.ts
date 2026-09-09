@@ -28,10 +28,3 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 
-// Graceful shutdown for production
-if (process.env.NODE_ENV === "production") {
-  process.on("beforeExit", async () => {
-    await prisma.$disconnect();
-  });
-}
-
