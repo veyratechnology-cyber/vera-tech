@@ -1,28 +1,25 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 /**
  * Prisma Client singleton for database access
  * Prevents multiple instances in development hot-reload
- * Optimized for Vercel serverless with connection pooling
+ * Optimized for Vercel serverless with proper TypeScript typing
  */
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Force connection pooling mode for authentication
-const datasourceUrl = process.env.DATABASE_URL;
+// Properly typed log configuration
+const logConfig: Prisma.LogLevel[] = 
+  process.env.NODE_ENV === "development" 
+    ? ["error", "warn"] 
+    : ["error"];
 
-// Optimized configuration for Vercel serverless
-const prismaClientOptions = {
-  log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-  datasources: {
-    db: {
-      url: datasourceUrl,
-    },
-  },
-  // Optimize for serverless
-  errorFormat: "minimal" as const,
+// Properly typed Prisma client options
+const prismaClientOptions: Prisma.PrismaClientOptions = {
+  log: logConfig,
+  errorFormat: "minimal",
 };
 
 export const prisma =

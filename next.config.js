@@ -2,6 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
   
+  // TypeScript configuration
+  typescript: {
+    // Don't fail build on type errors in development, but catch them in CI
+    ignoreBuildErrors: false,
+  },
+  
+  // ESLint configuration
+  eslint: {
+    // Run ESLint during builds
+    ignoreDuringBuilds: false,
+  },
+  
   // Image optimization
   images: {
     domains: ['localhost'],
