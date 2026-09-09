@@ -1,9 +1,11 @@
-import { prisma } from "@/lib/prisma";
+import { prisma, safePrismaQuery } from "@/lib/prisma";
 import { unstable_cache } from "next/cache";
+import { errorMonitor, trackPerformance } from "@/lib/monitoring";
+import { safeDbQuery } from "@/lib/error-recovery";
 
 /**
- * Optimized data fetchers for admin pages
- * Uses Next.js caching for improved performance
+ * Optimized data fetchers for admin pages with crash prevention
+ * Uses Next.js caching and comprehensive error handling
  */
 
 // Cache tags for revalidation
@@ -16,21 +18,14 @@ export const CACHE_TAGS = {
 } as const;
 
 /**
- * Safe wrapper for database queries
+ * Safe wrapper for database queries with automatic recovery
  * Returns data and error separately to prevent crashes
  */
 export async function safeQuery<T>(
   queryFn: () => Promise<T>,
   fallback: T
 ): Promise<{ data: T; error: string | null }> {
-  try {
-    const data = await queryFn();
-    return { data, error: null };
-  } catch (error) {
-    console.error("Database query error:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return { data: fallback, error: errorMessage };
-  }
+  return safeDbQuery(queryFn, fallback);
 }
 
 /**
