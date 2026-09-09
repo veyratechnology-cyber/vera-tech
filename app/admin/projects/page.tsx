@@ -1,40 +1,19 @@
 // @ts-nocheck
 import React from "react";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from "@/components/shared";
 import { Plus, Briefcase, Search } from "lucide-react";
+import { getProjects } from "@/lib/admin/data-fetchers";
+import { ErrorFallback } from "@/components/admin/ErrorBoundary";
 
 export const metadata = {
   title: "Projects | VeyraTech Admin",
 };
 
-export default async function ProjectsPage() {
-  let projects = [];
-  let error = null;
+export const revalidate = 60; // Revalidate every 60 seconds
 
-  try {
-    projects = await prisma.project.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        proposal: {
-          select: { 
-            title: true, 
-            clientCompany: true,
-            lead: {
-              select: { name: true }
-            }
-          },
-        },
-        assignedAdmin: {
-          select: { name: true },
-        },
-      },
-    });
-  } catch (e: any) {
-    console.error("Error loading projects:", e);
-    error = e.message;
-  }
+export default async function ProjectsPage() {
+  const { data: projects, error } = await getProjects();
 
   return (
     <div className="space-y-6">
@@ -56,14 +35,10 @@ export default async function ProjectsPage() {
       </div>
 
       {error ? (
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-red-600 mb-2">Error loading projects</p>
-              <p className="text-sm text-text-muted">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <ErrorFallback
+          error={error}
+          title="Error loading projects"
+        />
       ) : (
         <>
           <Card>

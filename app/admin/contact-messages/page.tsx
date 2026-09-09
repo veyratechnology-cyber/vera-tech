@@ -1,26 +1,19 @@
 // @ts-nocheck
 import React from "react";
-import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle, CardContent, Badge } from "@/components/shared";
 import { Mail, Phone, Building2, MessageSquare, Calendar } from "lucide-react";
 import { format } from "date-fns";
+import { getContactMessages } from "@/lib/admin/data-fetchers";
+import { ErrorFallback } from "@/components/admin/ErrorBoundary";
 
 export const metadata = {
   title: "Contact Messages | VeyraTech Admin",
 };
 
-export default async function ContactMessagesPage() {
-  let messages = [];
-  let error = null;
+export const revalidate = 60; // Revalidate every 60 seconds
 
-  try {
-    messages = await prisma.contactMessage.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-  } catch (e: any) {
-    console.error("Error loading contact messages:", e);
-    error = e.message;
-  }
+export default async function ContactMessagesPage() {
+  const { data: messages, error } = await getContactMessages();
 
   const formatDate = (date: Date) => {
     try {
@@ -42,14 +35,10 @@ export default async function ContactMessagesPage() {
       </div>
 
       {error ? (
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-red-600 mb-2">Error loading contact messages</p>
-              <p className="text-sm text-text-muted">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <ErrorFallback
+          error={error}
+          title="Error loading contact messages"
+        />
       ) : (
         <>
           {/* Stats */}

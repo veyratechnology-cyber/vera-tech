@@ -17,20 +17,19 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         console.log("[AUTH] authorize() started");
-        console.log("[AUTH] email received:", Boolean(credentials?.email));
-        console.log("[AUTH] password received:", Boolean(credentials?.password));
 
         if (!credentials?.email || !credentials?.password) {
           console.log("[AUTH] REJECTED: missing credentials");
-          throw new Error("Email and password are required");
+          return null;
         }
 
         const email = credentials.email.trim().toLowerCase();
-        console.log("[AUTH] normalized email:", email);
+        console.log("[AUTH] email received");
 
-        // Find admin user with retry logic
+        // Find admin user with retry logic and better error handling
         let admin;
         let retries = 3;
+        let lastError: Error | null = null;
         
         while (retries > 0) {
           try {
@@ -42,20 +41,24 @@ export const authOptions: NextAuthOptions = {
             break; // Success, exit retry loop
           } catch (error) {
             retries--;
-            console.error(`[AUTH] database error (${3 - retries}/3):`, error instanceof Error ? error.message : String(error));
+            lastError = error as Error;
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error(`[AUTH] database error (attempt ${3 - retries}/3):`, errorMsg);
             
             if (retries === 0) {
-              throw new Error("Database connection failed after 3 attempts");
+              // After all retries failed, return null instead of throwing
+              console.error("[AUTH] All database connection attempts failed");
+              return null;
             }
             
-            // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Wait before retry (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
           }
         }
 
         if (!admin) {
-          console.log("[AUTH] REJECTED: user not found");
-          throw new Error("Invalid email or password");
+          console.log("[AUTH] REJECTED: user not found or database error");
+          return null;
         }
 
         console.log("[AUTH] user status:", admin.status);
@@ -63,7 +66,7 @@ export const authOptions: NextAuthOptions = {
         // Check if admin is active
         if (admin.status !== "ACTIVE") {
           console.log("[AUTH] REJECTED: account inactive");
-          throw new Error("Account is inactive");
+          return null;
         }
 
         // Verify password
@@ -77,40 +80,36 @@ export const authOptions: NextAuthOptions = {
           console.log("[AUTH] password verification completed:", isPasswordValid);
         } catch (error) {
           console.error("[AUTH] password verification error:", error instanceof Error ? error.message : String(error));
-          throw new Error("Password verification failed");
+          return null;
         }
 
         if (!isPasswordValid) {
           console.log("[AUTH] REJECTED: invalid password");
-          throw new Error("Invalid email or password");
+          return null;
         }
 
         console.log("[AUTH] authentication successful");
 
-        // Update last login
-        try {
-          await prisma.admin.update({
-            where: { id: admin.id },
-            data: { lastLoginAt: new Date() },
-          });
-        } catch (error) {
-          console.error("[AUTH] failed to update last login:", error instanceof Error ? error.message : String(error));
-        }
+        // Update last login (non-blocking)
+        prisma.admin.update({
+          where: { id: admin.id },
+          data: { lastLoginAt: new Date() },
+        }).catch(err => {
+          console.error("[AUTH] failed to update last login:", err instanceof Error ? err.message : String(err));
+        });
 
-        // Create audit log
-        try {
-          await prisma.auditLog.create({
-            data: {
-              adminId: admin.id,
-              action: "ADMIN_LOGIN",
-              resource: "Admin",
-              resourceId: admin.id,
-              result: "SUCCESS",
-            },
-          });
-        } catch (error) {
-          console.error("[AUTH] failed to create audit log:", error instanceof Error ? error.message : String(error));
-        }
+        // Create audit log (non-blocking)
+        prisma.auditLog.create({
+          data: {
+            adminId: admin.id,
+            action: "ADMIN_LOGIN",
+            resource: "Admin",
+            resourceId: admin.id,
+            result: "SUCCESS",
+          },
+        }).catch(err => {
+          console.error("[AUTH] failed to create audit log:", err instanceof Error ? err.message : String(err));
+        });
 
         console.log("[AUTH] returning user object");
         return {

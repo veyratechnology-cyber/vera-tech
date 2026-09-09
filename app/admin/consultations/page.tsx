@@ -1,14 +1,18 @@
 // @ts-nocheck
 import React from "react";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from "@/components/shared";
-import { Calendar, Search, Filter } from "lucide-react";
+import { Calendar } from "lucide-react";
 import ConsultationFilters from "./ConsultationFilters";
+import { getConsultations } from "@/lib/admin/data-fetchers";
+import { ErrorFallback } from "@/components/admin/ErrorBoundary";
 
 export const metadata = {
   title: "Consultations | VeyraTech Admin",
 };
+
+// Enable dynamic rendering for filters
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   searchParams: {
@@ -22,59 +26,12 @@ interface PageProps {
 }
 
 export default async function ConsultationsPage({ searchParams }: PageProps) {
-  let consultations: any[] = [];
-  let stats: any[] = [];
-  let error = null;
+  const { data, error } = await getConsultations({
+    ...searchParams,
+    cache: false, // Disable cache for filtered results
+  });
 
-  try {
-    // Build where clause based on filters
-    const where: any = {};
-    
-    if (searchParams.status) {
-      where.status = searchParams.status;
-    }
-    
-    if (searchParams.meetingType) {
-      where.meetingType = searchParams.meetingType;
-    }
-    
-    if (searchParams.industry) {
-      where.industry = searchParams.industry;
-    }
-    
-    if (searchParams.dateFrom || searchParams.dateTo) {
-      where.actualScheduledAt = {};
-      if (searchParams.dateFrom) {
-        where.actualScheduledAt.gte = new Date(searchParams.dateFrom);
-      }
-      if (searchParams.dateTo) {
-        where.actualScheduledAt.lte = new Date(searchParams.dateTo);
-      }
-    }
-    
-    if (searchParams.search) {
-      where.OR = [
-        { name: { contains: searchParams.search, mode: 'insensitive' } },
-        { email: { contains: searchParams.search, mode: 'insensitive' } },
-        { company: { contains: searchParams.search, mode: 'insensitive' } },
-        { phone: { contains: searchParams.search, mode: 'insensitive' } },
-      ];
-    }
-
-    consultations = await prisma.consultation.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
-    
-    // Get counts for stats
-    stats = await prisma.consultation.groupBy({
-      by: ['status'],
-      _count: true,
-    });
-  } catch (e: any) {
-    console.error("Error loading consultations:", e);
-    error = e.message;
-  }
+  const { consultations, stats } = data;
 
   return (
     <div className="space-y-6">
@@ -88,30 +45,26 @@ export default async function ConsultationsPage({ searchParams }: PageProps) {
       </div>
       
       {error ? (
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-red-600 mb-2">Error loading consultations</p>
-              <p className="text-sm text-text-muted">{error}</p>
-              <p className="text-sm text-text-muted mt-4">
-                The consultations table may not exist yet. Please run the database migrations.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <ErrorFallback
+          error={error}
+          title="Error loading consultations"
+          description="The consultations table may not exist yet. Please run the database migrations."
+        />
       ) : (
         <>
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat) => (
-              <Card key={stat.status}>
-                <CardContent className="p-4">
-                  <p className="text-sm text-text-muted">{stat.status}</p>
-                  <p className="text-2xl font-bold text-text-primary">{stat._count}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {stats.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {stats.map((stat) => (
+                <Card key={stat.status}>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-text-muted">{stat.status}</p>
+                    <p className="text-2xl font-bold text-text-primary">{stat._count}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Filters */}
           <ConsultationFilters />
