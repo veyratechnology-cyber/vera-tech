@@ -75,7 +75,9 @@ export async function getConsultations(options?: {
       }),
       prisma.consultation.groupBy({
         by: ["status"],
-        _count: true,
+        _count: {
+          _all: true,
+        },
       }),
     ]);
 

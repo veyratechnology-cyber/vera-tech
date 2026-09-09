@@ -59,7 +59,7 @@ export default async function ConsultationsPage({ searchParams }: PageProps) {
                 <Card key={stat.status}>
                   <CardContent className="p-4">
                     <p className="text-sm text-text-muted">{stat.status}</p>
-                    <p className="text-2xl font-bold text-text-primary">{stat._count}</p>
+                    <p className="text-2xl font-bold text-text-primary">{stat._count._all}</p>
                   </CardContent>
                 </Card>
               ))}
