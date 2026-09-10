@@ -1,4 +1,4 @@
-import { prisma, safePrismaQuery } from "@/lib/prisma";
+import { safePrismaQuery } from "@/lib/prisma";
 import { unstable_cache } from "next/cache";
 import { errorMonitor, trackPerformance } from "@/lib/monitoring";
 import { safeDbQuery } from "@/lib/error-recovery";
@@ -41,42 +41,44 @@ export async function getConsultations(options?: {
   cache?: boolean;
 }) {
   const fetchFn = async () => {
-    const where: any = {};
+    return safePrismaQuery(async (client) => {
+      const where: any = {};
 
-    if (options?.status) where.status = options.status;
-    if (options?.meetingType) where.meetingType = options.meetingType;
-    if (options?.industry) where.industry = options.industry;
+      if (options?.status) where.status = options.status;
+      if (options?.meetingType) where.meetingType = options.meetingType;
+      if (options?.industry) where.industry = options.industry;
 
-    if (options?.dateFrom || options?.dateTo) {
-      where.actualScheduledAt = {};
-      if (options.dateFrom) where.actualScheduledAt.gte = new Date(options.dateFrom);
-      if (options.dateTo) where.actualScheduledAt.lte = new Date(options.dateTo);
-    }
+      if (options?.dateFrom || options?.dateTo) {
+        where.actualScheduledAt = {};
+        if (options.dateFrom) where.actualScheduledAt.gte = new Date(options.dateFrom);
+        if (options.dateTo) where.actualScheduledAt.lte = new Date(options.dateTo);
+      }
 
-    if (options?.search) {
-      where.OR = [
-        { name: { contains: options.search, mode: "insensitive" } },
-        { email: { contains: options.search, mode: "insensitive" } },
-        { company: { contains: options.search, mode: "insensitive" } },
-        { phone: { contains: options.search, mode: "insensitive" } },
-      ];
-    }
+      if (options?.search) {
+        where.OR = [
+          { name: { contains: options.search, mode: "insensitive" } },
+          { email: { contains: options.search, mode: "insensitive" } },
+          { company: { contains: options.search, mode: "insensitive" } },
+          { phone: { contains: options.search, mode: "insensitive" } },
+        ];
+      }
 
-    const [consultations, stats] = await Promise.all([
-      prisma.consultation.findMany({
-        where,
-        orderBy: { createdAt: "desc" },
-        take: 100, // Limit for performance
-      }),
-      prisma.consultation.groupBy({
-        by: ["status"],
-        _count: {
-          _all: true,
-        },
-      }),
-    ]);
+      const [consultations, stats] = await Promise.all([
+        client.consultation.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: 100, // Limit for performance
+        }),
+        client.consultation.groupBy({
+          by: ["status"],
+          _count: {
+            _all: true,
+          },
+        }),
+      ]);
 
-    return { consultations, stats };
+      return { consultations, stats };
+    }, 3);
   };
 
   if (options?.cache !== false) {
@@ -95,24 +97,26 @@ export async function getConsultations(options?: {
  */
 export async function getProjects(cache = true) {
   const fetchFn = async () => {
-    return prisma.project.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 100,
-      include: {
-        proposal: {
-          select: {
-            title: true,
-            clientCompany: true,
-            lead: {
-              select: { name: true },
+    return safePrismaQuery(async (client) => {
+      return client.project.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        include: {
+          proposal: {
+            select: {
+              title: true,
+              clientCompany: true,
+              lead: {
+                select: { name: true },
+              },
             },
           },
+          assignedAdmin: {
+            select: { name: true },
+          },
         },
-        assignedAdmin: {
-          select: { name: true },
-        },
-      },
-    });
+      });
+    }, 3);
   };
 
   if (cache) {
@@ -131,10 +135,12 @@ export async function getProjects(cache = true) {
  */
 export async function getContactMessages(cache = true) {
   const fetchFn = async () => {
-    return prisma.contactMessage.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 100,
-    });
+    return safePrismaQuery(async (client) => {
+      return client.contactMessage.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 100,
+      });
+    }, 3);
   };
 
   if (cache) {
@@ -153,24 +159,26 @@ export async function getContactMessages(cache = true) {
  */
 export async function getDashboardStats(cache = true) {
   const fetchFn = async () => {
-    const [
-      totalLeads,
-      totalConsultations,
-      totalProjects,
-      activeProjects,
-    ] = await Promise.all([
-      prisma.lead.count(),
-      prisma.consultation.count(),
-      prisma.project.count(),
-      prisma.project.count({ where: { status: "ACTIVE" } }),
-    ]);
+    return safePrismaQuery(async (client) => {
+      const [
+        totalLeads,
+        totalConsultations,
+        totalProjects,
+        activeProjects,
+      ] = await Promise.all([
+        client.lead.count(),
+        client.consultation.count(),
+        client.project.count(),
+        client.project.count({ where: { status: "ACTIVE" } }),
+      ]);
 
-    return {
-      totalLeads,
-      totalConsultations,
-      totalProjects,
-      activeProjects,
-    };
+      return {
+        totalLeads,
+        totalConsultations,
+        totalProjects,
+        activeProjects,
+      };
+    }, 3);
   };
 
   if (cache) {

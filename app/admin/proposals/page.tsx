@@ -1,25 +1,55 @@
 import React from "react";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { safePrismaQuery } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from "@/components/shared";
 import { Plus, FileText, Search } from "lucide-react";
+import { ErrorFallback } from "@/components/admin/ErrorBoundary";
 
 export const metadata = {
   title: "Proposals | VeyraTech Admin",
 };
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 export default async function ProposalsPage() {
-  const proposals = await prisma.proposal.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      lead: {
-        select: { name: true, company: true },
-      },
-      assignedAdmin: {
-        select: { name: true },
-      },
-    },
-  });
+  let proposals = [];
+  let error = null;
+
+  try {
+    proposals = await safePrismaQuery(async (client) => {
+      return client.proposal.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        include: {
+          lead: {
+            select: { name: true, company: true },
+          },
+          assignedAdmin: {
+            select: { name: true },
+          },
+        },
+      });
+    }, 3);
+  } catch (err: any) {
+    error = err.message || "Failed to load proposals";
+    console.error("[PROPOSALS] Error loading proposals:", err);
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-sora font-bold text-text-primary mb-2">
+            Proposals
+          </h1>
+          <p className="text-text-secondary">
+            Create and manage client proposals
+          </p>
+        </div>
+        <ErrorFallback error={new Error(error)} title="Error loading proposals" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
