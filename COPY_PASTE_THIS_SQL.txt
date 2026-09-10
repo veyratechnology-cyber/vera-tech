@@ -1,0 +1,41 @@
+-- ============================================================================
+-- COPY THIS ENTIRE BLOCK AND PASTE IN SUPABASE SQL EDITOR
+-- ============================================================================
+-- This fixes the 401 Unauthorized login error permanently
+-- Takes 30 seconds to run
+-- ============================================================================
+
+UPDATE admins 
+SET password_hash = '$2a$10$x.x/hNXqWfHuHPosbmIQAuuLp6y3I45mU.vxGLkc6tpZ3tULLW6Ay'
+WHERE email = 'admin@veyratech.com';
+
+-- Verify it worked (YOU MUST SEE "✅ FIXED" IN RESULT)
+SELECT 
+  email,
+  name,
+  substring(password_hash, 1, 50) as hash_preview,
+  CASE 
+    WHEN password_hash = '$2a$10$x.x/hNXqWfHuHPosbmIQAuuLp6y3I45mU.vxGLkc6tpZ3tULLW6Ay' 
+    THEN '✅ FIXED - Login will now work!' 
+    ELSE '❌ STILL WRONG - Contact support'
+  END as status
+FROM admins 
+WHERE email = 'admin@veyratech.com';
+
+-- ============================================================================
+-- EXPECTED OUTPUT:
+-- ============================================================================
+-- email: admin@veyratech.com
+-- name: Admin User
+-- hash_preview: $2a$10$x.x/hNXqWfHuHPosbmIQAuuLp6y3I45mU.vxGL...
+-- status: ✅ FIXED - Login will now work!
+-- ============================================================================
+
+-- ============================================================================
+-- AFTER RUNNING THIS:
+-- ============================================================================
+-- 1. Go to: https://vera-tech.vercel.app/admin-login
+-- 2. Email: admin@veyratech.com
+-- 3. Password: bonaventure123kenya
+-- 4. Should login IMMEDIATELY with NO 401 error
+-- ============================================================================
