@@ -46,7 +46,7 @@ export default async function ProposalsPage() {
             Create and manage client proposals
           </p>
         </div>
-        <ErrorFallback error={new Error(error)} title="Error loading proposals" />
+        <ErrorFallback error={{ message: error } as Error} title="Error loading proposals" />
       </div>
     );
   }
