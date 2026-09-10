@@ -41,6 +41,8 @@ export default function ContactPage() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setSubmitStatus({
           type: "success",
@@ -55,9 +57,20 @@ export default function ContactPage() {
           message: "",
         });
       } else {
-        throw new Error("Failed to send message");
+        // Show validation errors if available
+        const errorMessage = data.details 
+          ? data.details.map((err: any) => `${err.path.join('.')}: ${err.message}`).join(', ')
+          : data.error || "Failed to send message";
+        
+        console.error("API Error:", data);
+        
+        setSubmitStatus({
+          type: "error",
+          message: `Error: ${errorMessage}`,
+        });
       }
     } catch (error) {
+      console.error("Submit error:", error);
       setSubmitStatus({
         type: "error",
         message: "Something went wrong. Please try again or email us directly.",
