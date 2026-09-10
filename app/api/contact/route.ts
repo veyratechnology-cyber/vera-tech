@@ -42,7 +42,10 @@ export async function POST(request: NextRequest) {
     // Save to database with auto-reconnect
     let contactMessage;
     try {
+      console.log("[CONTACT] Attempting to save to database...");
+      
       contactMessage = await safePrismaQuery(async (client) => {
+        console.log("[CONTACT] Inside safePrismaQuery, creating contact message...");
         return client.contactMessage.create({
           data: {
             name: name.trim(),
@@ -56,13 +59,23 @@ export async function POST(request: NextRequest) {
       }, 3); // 3 retries
       
       console.log("[CONTACT] Message saved successfully:", contactMessage.id);
-    } catch (dbError) {
-      console.error("[CONTACT] Database error:", dbError);
+    } catch (dbError: any) {
+      console.error("[CONTACT] Database error:", {
+        message: dbError.message,
+        code: dbError.code,
+        meta: dbError.meta,
+        stack: dbError.stack?.substring(0, 500)
+      });
+      
       // Return error to user so they know to try again
       return NextResponse.json(
         {
           error: "Database connection failed",
           message: "Unable to save your message. Please try again or contact us directly at admin@veyratech.com",
+          details: process.env.NODE_ENV === 'development' ? {
+            errorMessage: dbError.message,
+            errorCode: dbError.code
+          } : undefined
         },
         { status: 503 }
       );
