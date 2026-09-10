@@ -1,30 +1,16 @@
 -- ============================================================================
--- FIX PASSWORD NOW - COPY THIS ENTIRE SCRIPT
+-- FIX PASSWORD NOW - WORKS WITH EXISTING DATA
 -- ============================================================================
 
--- Step 1: Delete the wrong admin (if exists)
-DELETE FROM admins WHERE email = 'admin@veyratech.com';
+-- Simply UPDATE the password hash (don't delete)
+UPDATE admins 
+SET 
+  password_hash = '$2a$10$x.x/hNXqWfHuHPosbmIQAuuLp6y3I45mU.vxGLkc6tpZ3tULLW6Ay',
+  status = 'ACTIVE',
+  updated_at = NOW()
+WHERE email = 'admin@veyratech.com';
 
--- Step 2: Create new admin with CORRECT hash
-INSERT INTO admins (
-  id,
-  name,
-  email,
-  password_hash,
-  status,
-  created_at,
-  updated_at
-) VALUES (
-  gen_random_uuid(),
-  'Administrator',
-  'admin@veyratech.com',
-  '$2a$10$x.x/hNXqWfHuHPosbmIQAuuLp6y3I45mU.vxGLkc6tpZ3tULLW6Ay',
-  'ACTIVE',
-  NOW(),
-  NOW()
-);
-
--- Step 3: Verify it's correct
+-- Verify it worked
 SELECT 
   email,
   name,
@@ -33,7 +19,7 @@ SELECT
   CASE 
     WHEN password_hash = '$2a$10$x.x/hNXqWfHuHPosbmIQAuuLp6y3I45mU.vxGLkc6tpZ3tULLW6Ay' 
     THEN '✅ SUCCESS - Login will now work!' 
-    ELSE '❌ FAILED - Try again' 
+    ELSE '❌ FAILED - Hash is: ' || substring(password_hash, 1, 50)
   END as result
 FROM admins 
 WHERE email = 'admin@veyratech.com';
