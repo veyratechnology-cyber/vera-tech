@@ -16,10 +16,17 @@ const logConfig: Prisma.LogLevel[] =
     ? ["error", "warn"] 
     : ["error"];
 
-// Properly typed Prisma client options
+// Properly typed Prisma client options with PgBouncer support
 const prismaClientOptions: Prisma.PrismaClientOptions = {
   log: logConfig,
   errorFormat: "minimal",
+  // CRITICAL: Disable prepared statements for PgBouncer transaction mode
+  // This prevents 42P05 errors ("prepared statement already exists")
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
 };
 
 export const prisma =
