@@ -86,10 +86,9 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/site.webmanifest',
-  // Add Google verification code after you get it from Google Search Console
-  // verification: {
-  //   google: 'YOUR_GOOGLE_VERIFICATION_CODE',
-  // },
+  verification: {
+    google: 'GDb0sukagqfRt8Tpwz2bCFxmr93rSM4wok3TDP73l9U',
+  },
 };
 
 export default function RootLayout({
