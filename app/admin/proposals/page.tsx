@@ -12,8 +12,8 @@ export const metadata = {
 export const revalidate = 60; // Revalidate every 60 seconds
 
 export default async function ProposalsPage() {
-  let proposals = [];
-  let error = null;
+  let proposals: any[] = [];
+  let error: string | null = null;
 
   try {
     proposals = await safePrismaQuery(async (client) => {
