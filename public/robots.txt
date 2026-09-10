@@ -1,0 +1,15 @@
+# robots.txt for VeyraTech
+# https://vera-tech.vercel.app
+
+# Allow all search engines to crawl the site
+User-agent: *
+Allow: /
+
+# Disallow admin areas and API routes
+Disallow: /admin
+Disallow: /admin-login
+Disallow: /admin/*
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://vera-tech.vercel.app/sitemap.xml
