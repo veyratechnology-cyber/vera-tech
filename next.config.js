@@ -4,13 +4,11 @@ const nextConfig = {
   
   // TypeScript configuration
   typescript: {
-    // Don't fail build on type errors in development, but catch them in CI
     ignoreBuildErrors: false,
   },
   
   // ESLint configuration
   eslint: {
-    // Run ESLint during builds
     ignoreDuringBuilds: false,
   },
   
@@ -18,6 +16,7 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
     formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
   },
   
   // Environment variables
@@ -29,6 +28,7 @@ const nextConfig = {
   // Production optimizations
   swcMinify: true,
   compress: true,
+  poweredByHeader: false,
   
   // Optimize for serverless
   experimental: {
@@ -42,7 +42,7 @@ const nextConfig = {
     } : false,
   },
   
-  // Headers for security and performance
+  // Headers for security, performance, and caching
   async headers() {
     return [
       {
@@ -55,6 +55,58 @@ const nextConfig = {
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()'
+          },
+        ],
+      },
+      {
+        // Cache static assets aggressively
+        source: '/favicon.ico',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Cache images
+        source: '/:all*.(svg|jpg|jpeg|png|gif|webp|ico)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Don't cache API routes
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        // Don't cache admin pages
+        source: '/admin/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
           },
         ],
       },

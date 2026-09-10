@@ -1,11 +1,12 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
+import { safePrismaQuery } from "@/lib/prisma";
 import prisma from "@/lib/db/prisma";
 
 /**
- * NextAuth Configuration
- * Secure authentication for VeyraTech administrators
+ * NextAuth Configuration - Production Ready
+ * Secure authentication with proper session and cookie management
  */
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,107 +17,85 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("[AUTH] authorize() started");
+        console.log("[AUTH] Login attempt started");
 
         if (!credentials?.email || !credentials?.password) {
-          console.log("[AUTH] REJECTED: missing credentials");
+          console.log("[AUTH] Missing credentials");
           return null;
         }
 
         const email = credentials.email.trim().toLowerCase();
-        console.log("[AUTH] email received");
 
-        // Find admin user with retry logic and better error handling
-        let admin;
-        let retries = 3;
-        let lastError: Error | null = null;
-        
-        while (retries > 0) {
-          try {
-            admin = await prisma.admin.findUnique({
-              where: { email: email },
-            });
-            console.log("[AUTH] database query completed");
-            console.log("[AUTH] user found:", Boolean(admin));
-            break; // Success, exit retry loop
-          } catch (error) {
-            retries--;
-            lastError = error as Error;
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`[AUTH] database error (attempt ${3 - retries}/3):`, errorMsg);
-            
-            if (retries === 0) {
-              // After all retries failed, return null instead of throwing
-              console.error("[AUTH] All database connection attempts failed");
-              return null;
-            }
-            
-            // Wait before retry (exponential backoff)
-            await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
-          }
-        }
-
-        if (!admin) {
-          console.log("[AUTH] REJECTED: user not found or database error");
-          return null;
-        }
-
-        console.log("[AUTH] user status:", admin.status);
-
-        // Check if admin is active
-        if (admin.status !== "ACTIVE") {
-          console.log("[AUTH] REJECTED: account inactive");
-          return null;
-        }
-
-        // Verify password
-        console.log("[AUTH] starting password verification");
-        let isPasswordValid;
+        // Use safe Prisma query with auto-reconnect
         try {
-          isPasswordValid = await compare(
-            credentials.password,
-            admin.passwordHash
-          );
-          console.log("[AUTH] password verification completed:", isPasswordValid);
+          const admin = await safePrismaQuery(async (client) => {
+            return client.admin.findUnique({
+              where: { email },
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                passwordHash: true,
+                status: true,
+              },
+            });
+          }, 5); // 5 retries with exponential backoff
+
+          if (!admin) {
+            console.log("[AUTH] User not found");
+            return null;
+          }
+
+          if (admin.status !== "ACTIVE") {
+            console.log("[AUTH] Account inactive");
+            return null;
+          }
+
+          // Verify password with timeout protection
+          const isPasswordValid = await Promise.race([
+            compare(credentials.password, admin.passwordHash),
+            new Promise<boolean>((_, reject) =>
+              setTimeout(() => reject(new Error("Password verification timeout")), 10000)
+            ),
+          ]);
+
+          if (!isPasswordValid) {
+            console.log("[AUTH] Invalid password");
+            return null;
+          }
+
+          console.log("[AUTH] Login successful:", email);
+
+          // Non-blocking: Update last login
+          prisma.admin
+            .update({
+              where: { id: admin.id },
+              data: { lastLoginAt: new Date() },
+            })
+            .catch((err) => console.error("[AUTH] Update last login failed:", err.message));
+
+          // Non-blocking: Create audit log
+          prisma.auditLog
+            .create({
+              data: {
+                adminId: admin.id,
+                action: "ADMIN_LOGIN",
+                resource: "Admin",
+                resourceId: admin.id,
+                result: "SUCCESS",
+              },
+            })
+            .catch((err) => console.error("[AUTH] Audit log failed:", err.message));
+
+          return {
+            id: admin.id,
+            email: admin.email,
+            name: admin.name,
+          };
         } catch (error) {
-          console.error("[AUTH] password verification error:", error instanceof Error ? error.message : String(error));
+          console.error("[AUTH] Database error:", error instanceof Error ? error.message : String(error));
           return null;
         }
-
-        if (!isPasswordValid) {
-          console.log("[AUTH] REJECTED: invalid password");
-          return null;
-        }
-
-        console.log("[AUTH] authentication successful");
-
-        // Update last login (non-blocking)
-        prisma.admin.update({
-          where: { id: admin.id },
-          data: { lastLoginAt: new Date() },
-        }).catch(err => {
-          console.error("[AUTH] failed to update last login:", err instanceof Error ? err.message : String(err));
-        });
-
-        // Create audit log (non-blocking)
-        prisma.auditLog.create({
-          data: {
-            adminId: admin.id,
-            action: "ADMIN_LOGIN",
-            resource: "Admin",
-            resourceId: admin.id,
-            result: "SUCCESS",
-          },
-        }).catch(err => {
-          console.error("[AUTH] failed to create audit log:", err instanceof Error ? err.message : String(err));
-        });
-
-        console.log("[AUTH] returning user object");
-        return {
-          id: admin.id,
-          email: admin.email,
-          name: admin.name,
-        };
       },
     }),
   ],
@@ -145,6 +124,20 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 24 * 60 * 60, // 24 hours
+    updateAge: 60 * 60, // Update session every hour
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60, // 24 hours
+      },
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 };
