@@ -1,184 +1,112 @@
-# 🚀 Quick Start - Get Notifications Working in 15 Minutes
+# ⚡ QUICK START - Fix Admin Login Now
 
-## What You'll Get:
-When someone books a consultation on your website:
-- 📧 **Email** to your inbox
-- 📱 **SMS** to your phone
-- 💬 **WhatsApp** message
+## 🚨 CRITICAL: Do This First (2 Minutes)
 
----
+Your site is deployed but **admin password in production database is wrong**.  
+This is why login fails initially but works after retry.
 
-## Part 1: Email Setup (5 min) - Resend
+### Step 1: Open Supabase SQL Editor
 
-### Step 1: Sign up
-→ Go to **https://resend.com**
-→ Click "Sign up" → Use your email
+1. Go to https://supabase.com/dashboard
+2. Click your project
+3. Click "SQL Editor" (left menu)
+4. Click "+ New query"
 
-### Step 2: Get API Key
-→ Dashboard → **API Keys** → **Create API Key**
-→ Copy the key (starts with `re_`)
+### Step 2: Copy and Run This SQL
 
-### Step 3: Add to Vercel
-→ **https://vercel.com/dashboard**
-→ Your project → **Settings** → **Environment Variables**
-→ Add:
-```
-Name: RESEND_API_KEY
-Value: re_your_key_here
+```sql
+UPDATE admins 
+SET 
+  password_hash = '$2a$10$x.x/hNXqWfHuHPosbmIQAuuLp6y3I45mU.vxGLkc6tpZ3tULLW6Ay',
+  status = 'ACTIVE',
+  updated_at = NOW()
+WHERE email = 'admin@veyratech.com';
+
+SELECT email, status FROM admins WHERE email = 'admin@veyratech.com';
 ```
 
-✅ **Done!** You'll receive emails.
+Click "Run" or press `Ctrl+Enter`
+
+### Step 3: Test Login
+
+1. Go to: https://vera-tech.vercel.app/admin-login
+2. Login with:
+   - Email: `admin@veyratech.com`
+   - Password: `bonaventure123kenya`
+
+✅ **Should work immediately!**
 
 ---
 
-## Part 2: SMS Setup (5 min) - Twilio
+## ✅ What's Already Fixed
 
-### Step 1: Sign up
-→ Go to **https://www.twilio.com/try-twilio**
-→ Fill form → Verify your phone (+254745247211)
+All these improvements are **already deployed** to production:
 
-### Step 2: Get a Phone Number
-→ In Twilio Console → **"Get a Twilio phone number"**
-→ Choose SMS capability → **Buy**
-→ Copy the number (example: +254712345678)
+### 🔒 Security
+- Secure sessions with 24-hour lifetime
+- HttpOnly cookies
+- Security headers on all routes
+- CSRF protection
 
-### Step 3: Get Credentials
-→ Twilio Dashboard shows:
+### ⚡ Performance
+- Static assets cached for 1 year
+- Images optimized (WebP + AVIF)
+- Compression enabled
+- Minification enabled
+
+### 🛡️ Stability
+- Auto-reconnect to database (5 retries)
+- Circuit breakers for failing services
+- Global error boundaries
+- Health monitoring endpoint
+- Exponential backoff on failures
+
+### 🎯 Session Management
+- JWT tokens (serverless-friendly)
+- 24-hour session lifetime
+- Auto-refresh every hour
+- Secure cookie configuration
+
+---
+
+## 🧪 Quick Tests
+
+### Test 1: Health Check
+```bash
+curl https://vera-tech.vercel.app/api/health
 ```
-Account SID: ACxxxxxx
-Auth Token: xxxxxx (click Show)
-```
+Should return: `{"status":"healthy",...}`
 
-### Step 4: Add to Vercel
-→ **https://vercel.com/dashboard**
-→ Your project → **Settings** → **Environment Variables**
-→ Add these 3:
-```
-TWILIO_ACCOUNT_SID = ACxxxxxx
-TWILIO_AUTH_TOKEN = xxxxxx
-TWILIO_PHONE_NUMBER = +254712345678
-ADMIN_PHONE_NUMBER = +254745247211
-```
+### Test 2: Admin Login
+Visit: https://vera-tech.vercel.app/admin-login  
+Login: `admin@veyratech.com` / `bonaventure123kenya`
 
-✅ **Done!** You'll receive SMS.
+### Test 3: Site Stability
+- Open multiple pages
+- Refresh several times
+- Should NOT crash
 
 ---
 
-## Part 3: WhatsApp Setup (5 min) - Twilio Sandbox
+## 📚 Full Documentation
 
-### Step 1: Get Join Code
-→ Twilio Console → **Messaging** → **Try WhatsApp**
-→ You'll see: "Send 'join word-word' to +1 415 523 8886"
-
-### Step 2: Join Sandbox (On Your Phone)
-→ Open WhatsApp on your phone
-→ Save contact: **+1 415 523 8886**
-→ Send message: **join word-word** (use the exact words shown)
-→ You'll get: "✅ Sandbox Enabled!"
-
-### Step 3: Add to Vercel
-→ **https://vercel.com/dashboard**
-→ Your project → **Settings** → **Environment Variables**
-→ Add these 2:
-```
-TWILIO_WHATSAPP_NUMBER = whatsapp:+14155238886
-ADMIN_WHATSAPP_NUMBER = +254745247211
-```
-
-✅ **Done!** You'll receive WhatsApp messages.
+- **PRODUCTION_READY.md** - Complete deployment guide
+- **FIX_ADMIN_LOGIN.md** - Detailed login fix explanation
+- **fix-production-database.sql** - SQL script to run
 
 ---
 
-## Final Step: Redeploy
+## 🎯 Summary
 
-→ Go to **https://vercel.com/dashboard**
-→ Your project → **Deployments**
-→ Click **"Redeploy"** (3 dots menu)
-
-**Wait 2-3 minutes for deployment to complete.**
+**What you need to do:** Run SQL in Supabase (2 minutes)  
+**What's already done:** Everything else (deployed to production)  
+**Expected result:** Login works perfectly, no more crashes
 
 ---
 
-## 🧪 Test It!
-
-1. Go to **https://veyratech.vercel.app**
-2. Click **"Book Consultation"**
-3. Fill the form → Submit
-
-**You should receive:**
-✅ Email in your inbox
-✅ SMS on your phone
-✅ WhatsApp message
-
----
-
-## 📋 All Environment Variables You Need
-
-Here's the complete list for Vercel:
-
-```env
-# Email
-RESEND_API_KEY=re_xxxxx
-EMAIL_FROM=VeyraTech <noreply@veyratech.com>
-ADMIN_EMAIL=admin@veyratech.com
-
-# SMS/WhatsApp
-TWILIO_ACCOUNT_SID=ACxxxxx
-TWILIO_AUTH_TOKEN=xxxxx
-TWILIO_PHONE_NUMBER=+254712345678
-TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
-ADMIN_PHONE_NUMBER=+254745247211
-ADMIN_WHATSAPP_NUMBER=+254745247211
-```
-
-**Replace:**
-- `re_xxxxx` → Your Resend API key
-- `ACxxxxx` → Your Twilio Account SID
-- `xxxxx` → Your Twilio Auth Token
-- `+254712345678` → Your Twilio phone number
-- Keep `+254745247211` (your phone number)
-- Keep `whatsapp:+14155238886` (Twilio sandbox)
-
----
-
-## 🆘 Not Working?
-
-### Check Vercel Logs:
-→ Vercel Dashboard → Deployments → Latest → **Functions**
-→ Look for `[EMAIL]`, `[SMS]`, `[WHATSAPP]` errors
-
-### Check Twilio Logs:
-→ Twilio Console → **Monitor** → **Logs** → **Messages**
-→ See if messages are being sent
-
-### Common Issues:
-- ❌ Forgot to redeploy after adding env variables
-- ❌ Phone number missing country code (+254)
-- ❌ Didn't join WhatsApp sandbox
-- ❌ Typo in environment variable names
-
----
-
-## 📚 Detailed Guides
-
-Need more help?
-- **SMS & WhatsApp:** See `SMS_WHATSAPP_SETUP_SIMPLE.md`
-- **Email:** See `EMAIL_SETUP.md`
-- **Everything:** See `NOTIFICATIONS_SETUP.md`
-
----
-
-## 💰 Costs
-
-### Free Tier:
-- **Resend:** 100 emails/day (FREE)
-- **Twilio Trial:** $15 credit (FREE)
-
-### After Trial:
-- SMS: ~$0.05 per message
-- WhatsApp: ~$0.005 per message
-- ~100 consultations/month = ~$5-10/month
-
----
-
-**🎉 You're all set! Start receiving notifications on every consultation booking!**
+**After running the SQL:**
+✅ Login works immediately  
+✅ No retries needed  
+✅ Site stays stable  
+✅ Admin panel always accessible  
+✅ Sessions persist for 24 hours
