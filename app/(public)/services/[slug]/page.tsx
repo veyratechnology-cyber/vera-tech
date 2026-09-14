@@ -38,10 +38,16 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
       where: { slug: params.slug },
     });
   } catch (error) {
+    console.error('[SERVICE_PAGE_ERROR]', {
+      slug: params.slug,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     notFound();
   }
 
   if (!service || !service.published) {
+    console.log('[SERVICE_NOT_FOUND]', { slug: params.slug, found: !!service, published: service?.published });
     notFound();
   }
 

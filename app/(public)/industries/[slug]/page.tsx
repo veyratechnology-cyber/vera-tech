@@ -38,10 +38,16 @@ export default async function IndustryDetailPage({ params }: IndustryPageProps) 
       where: { slug: params.slug },
     });
   } catch (error) {
+    console.error('[INDUSTRY_PAGE_ERROR]', {
+      slug: params.slug,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     notFound();
   }
 
   if (!industry || !industry.published) {
+    console.log('[INDUSTRY_NOT_FOUND]', { slug: params.slug, found: !!industry, published: industry?.published });
     notFound();
   }
 
