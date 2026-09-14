@@ -4,6 +4,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Industry } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -146,7 +147,7 @@ export async function POST(request: Request) {
         id: 'ind_real_estate',
         name: 'Real Estate',
         slug: 'real-estate',
-        industry: 'REAL_ESTATE',
+        industry: Industry.REAL_ESTATE,
         description: 'Technology solutions for real estate companies, property management firms, and REITs. Modernize operations, improve tenant experiences, and leverage data.',
         published: true,
         displayOrder: 1,
@@ -159,7 +160,7 @@ export async function POST(request: Request) {
         id: 'ind_construction',
         name: 'Construction',
         slug: 'construction',
-        industry: 'CONSTRUCTION',
+        industry: Industry.CONSTRUCTION,
         description: 'Technology consulting for construction companies, contractors, and engineering firms. Streamline project management and improve field operations.',
         published: true,
         displayOrder: 2,
@@ -172,7 +173,7 @@ export async function POST(request: Request) {
         id: 'ind_logistics',
         name: 'Logistics & Transportation',
         slug: 'logistics',
-        industry: 'LOGISTICS_TRANSPORT',
+        industry: Industry.LOGISTICS_TRANSPORT,
         description: 'Technology for logistics companies and transportation providers. Optimize routes, improve tracking, and enhance supply chain visibility.',
         published: true,
         displayOrder: 3,
@@ -185,7 +186,7 @@ export async function POST(request: Request) {
         id: 'ind_hospitality',
         name: 'Hospitality',
         slug: 'hospitality',
-        industry: 'HOSPITALITY',
+        industry: Industry.HOSPITALITY,
         description: 'Technology for hotels, restaurants, and resorts. Enhance guest experiences, streamline operations, and increase revenue.',
         published: true,
         displayOrder: 4,
@@ -198,7 +199,7 @@ export async function POST(request: Request) {
         id: 'ind_professional_services',
         name: 'Professional Services',
         slug: 'professional-services',
-        industry: 'PROFESSIONAL_SERVICES',
+        industry: Industry.PROFESSIONAL_SERVICES,
         description: 'Technology for consulting firms, law firms, and accounting practices. Improve billability, client management, and project delivery.',
         published: true,
         displayOrder: 5,
@@ -211,7 +212,7 @@ export async function POST(request: Request) {
         id: 'ind_growing_enterprises',
         name: 'Growing Enterprises',
         slug: 'growing-enterprises',
-        industry: 'OTHER',
+        industry: Industry.OTHER,
         description: 'Strategic technology guidance for rapidly growing companies. Scale operations, build foundations, and support sustainable growth.',
         published: true,
         displayOrder: 6,
