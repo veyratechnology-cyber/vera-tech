@@ -88,6 +88,9 @@ export const metadata: Metadata = {
   manifest: '/site.webmanifest',
   verification: {
     google: 'GhsCWM9iYwLCu4SMTW50d3ChpVjptvzDzi3Es6729Z0',
+    other: {
+      'msvalidate.01': '3F5EEB75E04C36C1E3134FE591300BBE',
+    },
   },
 };
 
