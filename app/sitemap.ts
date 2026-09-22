@@ -1,15 +1,37 @@
 import { MetadataRoute } from 'next'
 
 /**
- * Complete Sitemap for VeyraTech
- * Tells search engines which pages to crawl
- * Updated with all public pages
+ * Complete Dynamic Sitemap for VeyraTech
+ * Includes all static pages + all services + all industries
+ * Google will read this as XML automatically
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://vera-tech.vercel.app'
   const currentDate = new Date()
   
-  return [
+  // All 8 services from your database
+  const services = [
+    'technology-strategy',
+    'ai-consulting',
+    'business-automation',
+    'digital-transformation',
+    'software-systems',
+    'technology-advisory',
+    'cloud-solutions',
+    'cybersecurity'
+  ]
+  
+  // All 6 industries from your database
+  const industries = [
+    'real-estate',
+    'construction',
+    'logistics',
+    'hospitality',
+    'professional-services',
+    'growing-enterprises'
+  ]
+  
+  const staticPages: MetadataRoute.Sitemap = [
     // Home page - highest priority
     {
       url: baseUrl,
@@ -75,9 +97,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
-    
-    // Note: Dynamic service pages ([slug]) and insight articles ([slug]) 
-    // should be added dynamically by fetching from database
-    // This requires database connection at build time
   ]
+  
+  // Add all service pages
+  const servicePages: MetadataRoute.Sitemap = services.map(slug => ({
+    url: `${baseUrl}/services/${slug}`,
+    lastModified: currentDate,
+    changeFrequency: 'monthly' as const,
+    priority: 0.85,
+  }))
+  
+  // Add all industry pages
+  const industryPages: MetadataRoute.Sitemap = industries.map(slug => ({
+    url: `${baseUrl}/industries/${slug}`,
+    lastModified: currentDate,
+    changeFrequency: 'monthly' as const,
+    priority: 0.85,
+  }))
+  
+  // Combine all pages
+  return [...staticPages, ...servicePages, ...industryPages]
 }
